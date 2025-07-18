@@ -149,10 +149,6 @@ export const WordDisplay: React.FC<WordDisplayProps> = ({
               {word.difficulty.toUpperCase()}
             </Text>
           </View>
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Length:</Text>
-            <Text style={styles.infoValue}>{word.word.length} letters</Text>
-          </View>
         </View>
       </View>
 
@@ -251,7 +247,7 @@ const styles = StyleSheet.create({
   } as TextStyle,
 
   wordText: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',
   } as TextStyle,
@@ -274,8 +270,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     backgroundColor: Colors.background,
-    borderRadius: 8,
-    padding: 12,
+    borderRadius: 6,
+    padding: 6,
   } as ViewStyle,
 
   infoItem: {
@@ -283,13 +279,13 @@ const styles = StyleSheet.create({
   } as ViewStyle,
 
   infoLabel: {
-    fontSize: 12,
+    fontSize: 10,
     color: Colors.text.tertiary,
-    marginBottom: 2,
+    marginBottom: 1,
   } as TextStyle,
 
   infoValue: {
-    fontSize: 14,
+    fontSize: 11,
     fontWeight: '600',
     color: Colors.text.primary,
   } as TextStyle,
@@ -348,7 +344,7 @@ const styles = StyleSheet.create({
   } as ViewStyle,
 
   instructionText: {
-    fontSize: 14,
+    fontSize: 11,
     color: Colors.text.secondary,
     textAlign: 'center',
     fontStyle: 'italic',

@@ -64,29 +64,13 @@ const PlayerItem: React.FC<PlayerItemProps> = ({
     ].filter(Boolean)
   ) as TextStyle;
 
-  const scoreStyles = StyleSheet.flatten(
-    [
-      styles.playerScore,
-      isCurrentDrawer && highlightDrawer ? styles.currentDrawerScore : undefined,
-    ].filter(Boolean)
-  ) as TextStyle;
-
   return (
     <View style={itemStyles}>
-      <View style={styles.playerHeader}>
-        <Text style={nameStyles} numberOfLines={1}>
-          {player.name}
-        </Text>
-        {isCurrentDrawer && (
-          <View style={styles.drawerBadge}>
-            <Text style={styles.drawerBadgeText}>Drawing</Text>
-          </View>
-        )}
-      </View>
-
-      {showScore && <Text style={scoreStyles}>{player.score} points</Text>}
-
-      {isCurrentDrawer && <Text style={styles.drawerIndicator}>🎨 Currently drawing</Text>}
+      <Text style={nameStyles} numberOfLines={1}>
+        {player.name}
+        {showScore ? `: ${player.score} points` : ''}
+        {isCurrentDrawer ? ' 🎨' : ''}
+      </Text>
     </View>
   );
 };
@@ -193,10 +177,10 @@ const styles = StyleSheet.create({
   } as ViewStyle,
 
   title: {
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: 'bold',
     color: Colors.text.primary,
-    marginBottom: 12,
+    marginBottom: 6,
     textAlign: 'center',
   } as TextStyle,
 
@@ -206,8 +190,8 @@ const styles = StyleSheet.create({
 
   playerItem: {
     backgroundColor: Colors.background,
-    borderRadius: 8,
-    padding: 12,
+    borderRadius: 6,
+    padding: 6,
     borderWidth: 1,
     borderColor: Colors.border.light,
   } as ViewStyle,
@@ -225,7 +209,7 @@ const styles = StyleSheet.create({
   } as ViewStyle,
 
   playerName: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: '600',
     color: Colors.text.primary,
     flex: 1,

@@ -196,37 +196,60 @@ export const PictionaryApp: React.FC = () => {
         alwaysBounceVertical={false}
         keyboardShouldPersistTaps='handled'
       >
-        {/* Compact Header with Timer */}
-        <View style={styles.compactHeader}>
-          <View style={styles.headerInfo}>
-            <Text style={styles.gameTitle}>🎨 Pictionary</Text>
-            <Text style={styles.roundInfo}>
-              Round {gameSession.round}/{gameSession.maxRounds}
-            </Text>
-          </View>
-          {gameState === GameState.DRAWING && (
-            <View style={styles.timerContainer}>
-              <Timer
-                timeRemaining={localTimeRemaining}
-                maxTime={gameSession.maxTime}
-                isActive={true}
-                showProgressBar={true}
-                animated={true}
-              />
+        {/* Compact Full Screen Layout */}
+        <View style={styles.compactGameArea}>
+          {/* Left Panel: Game Info + Word + Animation */}
+          <View style={styles.compactLeftPanel}>
+            {/* Compact Game Info */}
+            <View style={styles.compactGameInfo}>
+              <Text style={styles.miniTitle}>🎨 Pictionary</Text>
+              <Text style={styles.miniRound}>
+                R{gameSession.round}/{gameSession.maxRounds}
+              </Text>
             </View>
-          )}
-        </View>
 
-        {/* Main Game Area */}
-        <View style={styles.gameArea}>
-          {/* Left Column: Word + Players */}
-          <View style={styles.leftColumn}>
             <WordDisplay
               word={gameSession.currentWord}
               isDrawer={isCurrentDrawer}
               showHints={!isCurrentDrawer}
               hintsEnabled={true}
             />
+            <View style={styles.compactAnimationContainer}>
+              <RiveGameAnimation
+                gameState={gameState}
+                currentWord={gameSession?.currentWord?.word}
+              />
+            </View>
+          </View>
+
+          {/* Center Panel: Canvas (Moved Up) */}
+          <View style={styles.compactCenterPanel}>
+            {/* Canvas Title */}
+            <Text style={styles.canvasTitle}>🎨 Draw Here!</Text>
+            <DrawingCanvas
+              enabled={gameState === GameState.DRAWING && isCurrentDrawer}
+              onDrawingChange={pathData => {
+                console.log('Drawing updated:', pathData);
+                // TODO: Send drawing data to other players
+              }}
+            />
+          </View>
+
+          {/* Right Panel: Timer + Players */}
+          <View style={styles.compactRightPanel}>
+            {/* Compact Timer */}
+            {gameState === GameState.DRAWING && (
+              <View style={styles.compactTimer}>
+                <Timer
+                  timeRemaining={localTimeRemaining}
+                  maxTime={gameSession.maxTime}
+                  isActive={true}
+                  showProgressBar={true}
+                  animated={true}
+                />
+              </View>
+            )}
+
             <PlayerInfo
               players={gameSession.players}
               {...(gameSession.currentDrawer?.id && {
@@ -235,25 +258,6 @@ export const PictionaryApp: React.FC = () => {
               showScores={true}
               highlightDrawer={true}
             />
-          </View>
-
-          {/* Right Column: Canvas + Animation */}
-          <View style={styles.rightColumn}>
-            <DrawingCanvas
-              enabled={gameState === GameState.DRAWING && isCurrentDrawer}
-              onDrawingChange={pathData => {
-                console.log('Drawing updated:', pathData);
-                // TODO: Send drawing data to other players
-              }}
-            />
-
-            {/* Rive Animation */}
-            <View style={styles.animationContainer}>
-              <RiveGameAnimation
-                gameState={gameState}
-                currentWord={gameSession?.currentWord?.word}
-              />
-            </View>
           </View>
         </View>
 
@@ -315,8 +319,8 @@ const styles = StyleSheet.create({
 
   scrollContent: {
     flexGrow: 1,
-    padding: 16,
-    paddingBottom: 32, // Extra padding at bottom for better scroll experience
+    padding: 4,
+    paddingBottom: 8, // Minimal padding for full screen
     ...Platform.select({
       web: {
         maxWidth: 800,
@@ -420,44 +424,85 @@ const styles = StyleSheet.create({
   },
 
   // Compact Layout Styles
-  compactHeader: {
+  compactGameArea: {
+    flexDirection: 'row',
+    gap: 4,
+    flex: 1,
+  },
+
+  compactGameInfo: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: Colors.background,
-    borderRadius: 12,
-    marginBottom: 16,
+    marginBottom: 4,
+    paddingHorizontal: 2,
+  },
+
+  miniTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+
+  miniRound: {
+    fontSize: 10,
+    color: '#666',
+    fontWeight: '500',
+  },
+
+  canvasTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+
+  // Compact Panel Layout
+  compactLeftPanel: {
+    flex: 1,
+    gap: 3,
+  },
+
+  compactCenterPanel: {
+    flex: 2,
+    backgroundColor: '#fff',
+    borderRadius: 6,
+    padding: 4,
     elevation: 2,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 3,
   },
 
-  headerInfo: {
+  compactRightPanel: {
     flex: 1,
+    gap: 3,
   },
 
-  timerContainer: {
-    flex: 1,
-    maxWidth: 200,
+  compactAnimationContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 6,
+    padding: 4,
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    minHeight: 60,
   },
 
-  gameArea: {
-    flexDirection: 'row',
-    gap: 16,
-    marginBottom: 16,
-  },
-
-  leftColumn: {
-    flex: 1,
-    gap: 12,
-  },
-
-  rightColumn: {
-    flex: 1,
+  compactTimer: {
+    backgroundColor: '#fff',
+    borderRadius: 6,
+    padding: 4,
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    marginBottom: 4,
   },
 
   // Animation styles

@@ -200,19 +200,66 @@ export const RiveGameAnimation: React.FC<RiveGameAnimationProps> = ({ gameState,
     }
   }, []);
 
-  // Enhanced fallback content
+  // Enhanced fallback content with better animations
   const renderFallback = () => {
     const spin = rotateAnim.interpolate({
       inputRange: [0, 1],
       outputRange: ['0deg', '360deg'],
     });
 
+    const getAnimationContent = () => {
+      switch (gameState) {
+        case 'playing':
+          return {
+            emoji: '🎨',
+            title: 'Drawing Time!',
+            subtitle: 'Create your masterpiece',
+            color: '#FF6B6B',
+            bgColor: '#FFE5E5',
+          };
+        case 'guessing':
+          return {
+            emoji: '🤔',
+            title: 'Think Fast!',
+            subtitle: 'What could it be?',
+            color: '#4ECDC4',
+            bgColor: '#E5F9F7',
+          };
+        case 'roundEnd':
+          return {
+            emoji: '🎉',
+            title: 'Round Complete!',
+            subtitle: 'Great job everyone!',
+            color: '#45B7D1',
+            bgColor: '#E5F4FD',
+          };
+        case 'gameEnd':
+          return {
+            emoji: '🏆',
+            title: 'Game Over!',
+            subtitle: 'Thanks for playing!',
+            color: '#F7DC6F',
+            bgColor: '#FEF9E7',
+          };
+        default:
+          return {
+            emoji: '⏳',
+            title: 'Get Ready...',
+            subtitle: 'Game starting soon',
+            color: '#BB8FCE',
+            bgColor: '#F4F1F8',
+          };
+      }
+    };
+
+    const content = getAnimationContent();
+
     return (
-      <View style={styles.container}>
-        <View style={styles.fallbackContainer}>
+      <View style={[styles.enhancedContainer, { backgroundColor: content.bgColor }]}>
+        <Animated.View style={styles.animationWrapper}>
           <Animated.Text
             style={[
-              styles.fallbackEmoji,
+              styles.enhancedEmoji,
               {
                 transform: [
                   { scale: gameState === 'playing' ? 1 : scaleAnim },
@@ -221,31 +268,11 @@ export const RiveGameAnimation: React.FC<RiveGameAnimationProps> = ({ gameState,
               },
             ]}
           >
-            {gameState === 'playing'
-              ? '🎨'
-              : gameState === 'guessing'
-              ? '🤔'
-              : gameState === 'roundEnd'
-              ? '🎉'
-              : gameState === 'gameEnd'
-              ? '🏆'
-              : '⏳'}
+            {content.emoji}
           </Animated.Text>
-          <Text style={styles.fallbackText}>
-            {gameState === 'playing'
-              ? 'Drawing...'
-              : gameState === 'guessing'
-              ? 'Guessing...'
-              : gameState === 'roundEnd'
-              ? 'Round Complete!'
-              : gameState === 'gameEnd'
-              ? 'Game Over!'
-              : 'Waiting...'}
-          </Text>
-          {hasError && (
-            <Text style={styles.fallbackSubtext}>(Animation error - using fallback)</Text>
-          )}
-        </View>
+          <Text style={[styles.enhancedTitle, { color: content.color }]}>{content.title}</Text>
+          <Text style={styles.enhancedSubtitle}>{content.subtitle}</Text>
+        </Animated.View>
       </View>
     );
   };
@@ -288,6 +315,46 @@ const styles = StyleSheet.create({
     color: '#999',
     textAlign: 'center',
     marginTop: 4,
+    fontStyle: 'italic',
+  },
+
+  // Enhanced Animation Styles
+  enhancedContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 16,
+    padding: 20,
+    minHeight: 150,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+
+  animationWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  enhancedEmoji: {
+    fontSize: 48,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+
+  enhancedTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 6,
+  },
+
+  enhancedSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
     fontStyle: 'italic',
   },
 });

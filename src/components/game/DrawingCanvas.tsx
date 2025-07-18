@@ -8,8 +8,9 @@ interface DrawingCanvasProps {
   onDrawingChange?: (pathData: string) => void;
 }
 
-const { width: screenWidth } = Dimensions.get('window');
-const CANVAS_HEIGHT = 200;
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+const CANVAS_WIDTH = Math.min(screenWidth * 0.45, 320); // Optimized canvas width
+const CANVAS_HEIGHT = Math.min(screenHeight * 0.55, 160); // Reduced canvas height
 
 export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ enabled, onDrawingChange }) => {
   const [paths, setPaths] = useState<string[]>([]);
@@ -75,10 +76,8 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ enabled, onDrawing
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>🎨 Draw Here!</Text>
-
       <View style={styles.canvasContainer} {...panResponder.panHandlers}>
-        <Svg width={screenWidth * 0.45} height={CANVAS_HEIGHT} style={styles.canvas}>
+        <Svg width={CANVAS_WIDTH} height={CANVAS_HEIGHT} style={styles.canvas}>
           {/* Render completed paths */}
           {paths.map((path, index) => (
             <Path
@@ -128,8 +127,8 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ enabled, onDrawing
 
 const styles = StyleSheet.create({
   container: {
-    marginVertical: 16,
     alignItems: 'center',
+    flex: 1,
   },
   title: {
     fontSize: 18,
@@ -139,15 +138,18 @@ const styles = StyleSheet.create({
   },
   canvasContainer: {
     backgroundColor: '#fff',
-    borderRadius: 12,
-    borderWidth: 2,
+    borderRadius: 8,
+    borderWidth: 1,
     borderColor: '#ddd',
-    marginBottom: 12,
-    elevation: 2,
+    marginBottom: 6,
+    elevation: 1,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
   },
   canvas: {
     backgroundColor: '#fff',
@@ -155,7 +157,8 @@ const styles = StyleSheet.create({
   },
   controls: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 8,
+    marginTop: 4,
   },
   disabledContainer: {
     height: CANVAS_HEIGHT + 60,
