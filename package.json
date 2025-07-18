@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web",
+    "start": "expo start --port 8000",
+    "android": "expo start --android --port 8000",
+    "ios": "expo start --ios --port 8000",
+    "web": "expo start --web --port 8000",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
@@ -18,7 +18,9 @@
     "react-native": "0.79.5",
     "react-native-gesture-handler": "^2.27.1",
     "react-native-svg": "^15.12.0",
-    "rive-react-native": "^9.3.4"
+    "rive-react-native": "^9.3.4",
+    "react-dom": "19.0.0",
+    "react-native-web": "^0.20.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
