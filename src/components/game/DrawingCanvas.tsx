@@ -10,7 +10,7 @@ interface DrawingCanvasProps {
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 const CANVAS_WIDTH = Math.min(screenWidth * 0.45, 320); // Optimized canvas width
-const CANVAS_HEIGHT = Math.min(screenHeight * 0.55, 160); // Reduced canvas height
+const CANVAS_HEIGHT = Math.min(screenHeight * 0.35, 160); // Reduced canvas height
 
 export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ enabled, onDrawingChange }) => {
   const [paths, setPaths] = useState<string[]>([]);
