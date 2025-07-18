@@ -140,4 +140,9 @@ export interface IAnimationManager {
    * Stops all animations and cleans up resources
    */
   stopAll(): void;
+
+  /**
+   * Clears all instances and stops all animations
+   */
+  clear(): void;
 }

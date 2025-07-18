@@ -92,6 +92,11 @@ export interface ITimerService {
    * @returns Remaining time in seconds, or null if no timer is active
    */
   getRemainingTime(sessionId: string): number | null;
+
+  /**
+   * Stops all active timers
+   */
+  stopAllTimers(): void;
 }
 
 /**
