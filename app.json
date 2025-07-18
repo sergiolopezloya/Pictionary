@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "PictionaryApp",
-    "slug": "PictionaryApp",
+    "name": "Pictionary",
+    "slug": "Pictionary",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
