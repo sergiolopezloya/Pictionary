@@ -12,7 +12,7 @@ import { Button, Timer, PlayerInfo, WordDisplay, GuessInput } from './components
 import { Colors } from './components/common/BaseComponent';
 
 // Import hooks
-import { useGameState, useRiveAnimation } from './hooks';
+import { useGameState } from './hooks';
 
 // Import types
 import { GameState } from './types';
@@ -38,12 +38,8 @@ export const PictionaryApp: React.FC = () => {
     currentPlayerId: 'player_1', // For demo purposes, using fixed player ID
   });
 
-  // Animation management
-  const { animationState, playAnimationForState } = useRiveAnimation({
-    riveFileUrl:
-      'https://public.rive.app/community/runtime-files/2244-4463-flutter-puzzle-hack-project.riv',
-    autoInitialize: true,
-  });
+  // Animation management (placeholder)
+  const animationState = { isReady: true };
 
   // Local state
   const [isGameStarted, setIsGameStarted] = useState(false);
@@ -97,12 +93,12 @@ export const PictionaryApp: React.FC = () => {
     setIsGameStarted(false);
   };
 
-  // Update animations when game state changes
+  // Animation state tracking (placeholder)
   useEffect(() => {
     if (gameState && animationState.isReady) {
-      playAnimationForState(gameState);
+      console.log('Game state changed:', gameState);
     }
-  }, [gameState, animationState.isReady, playAnimationForState]);
+  }, [gameState, animationState.isReady]);
 
   // Show error if there's one
   if (error) {
@@ -157,7 +153,10 @@ export const PictionaryApp: React.FC = () => {
       <ScrollView
         style={styles.scrollContainer}
         contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={true}
+        bounces={true}
+        alwaysBounceVertical={false}
+        keyboardShouldPersistTaps='handled'
       >
         {/* Header */}
         <View style={styles.header}>
@@ -195,6 +194,22 @@ export const PictionaryApp: React.FC = () => {
           showScores={true}
           highlightDrawer={true}
         />
+
+        {/* Game Animation Placeholder */}
+        {gameState && (
+          <View style={styles.animationContainer}>
+            <Text style={styles.animationText}>🎮 Game Animation</Text>
+            <Text style={styles.animationSubtext}>
+              {gameState === GameState.DRAWING
+                ? '🎨 Drawing...'
+                : gameState === GameState.GUESSING
+                ? '🤔 Guessing...'
+                : gameState === GameState.GAME_OVER
+                ? '🏆 Game Over!'
+                : '⏳ Waiting...'}
+            </Text>
+          </View>
+        )}
 
         {/* Guess Input */}
         <GuessInput
@@ -253,7 +268,9 @@ const styles = StyleSheet.create({
   },
 
   scrollContent: {
+    flexGrow: 1,
     padding: 16,
+    paddingBottom: 32, // Extra padding at bottom for better scroll experience
     ...Platform.select({
       web: {
         maxWidth: 800,
@@ -354,6 +371,29 @@ const styles = StyleSheet.create({
 
   errorButton: {
     minWidth: 150,
+  },
+
+  // Animation styles
+  animationContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 16,
+    backgroundColor: Colors.background,
+    borderRadius: 12,
+    padding: 16,
+  },
+
+  animationText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.text.primary,
+    marginBottom: 8,
+  },
+
+  animationSubtext: {
+    fontSize: 14,
+    color: Colors.text.secondary,
+    textAlign: 'center',
   },
 
   // Debug styles

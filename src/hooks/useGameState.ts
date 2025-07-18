@@ -3,7 +3,7 @@
  * Provides centralized game state management with clean separation of concerns
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { GameSession, GameConfig, GameState, GameEventPayload } from '../types';
 import { GameController, IGameEventHandler } from '../controllers/GameController';
 import { ServiceFactory } from '../services';
@@ -78,38 +78,55 @@ export const useGameState = (options: UseGameStateOptions = {}): GameStateHook =
   const serviceFactory = ServiceFactory.getInstance();
 
   /**
+   * Refreshes the current game session
+   */
+  const refreshGameSession = useCallback(async (): Promise<void> => {
+    if (!gameControllerRef.current) {
+      return;
+    }
+
+    const currentSession = gameControllerRef.current.getCurrentSession();
+    if (currentSession) {
+      setGameSession(currentSession);
+    }
+  }, []);
+
+  /**
    * Game event handler implementation
    */
-  const gameEventHandler: IGameEventHandler = {
-    onGameEvent: (event: GameEventPayload) => {
-      console.log('Game event received:', event);
+  const gameEventHandler: IGameEventHandler = useMemo(
+    () => ({
+      onGameEvent: (event: GameEventPayload) => {
+        console.log('Game event received:', event);
 
-      // Update game session from event data if available
-      if (event.data?.session) {
-        setGameSession(event.data.session);
-      }
+        // Update game session from event data if available
+        if (event.data?.session) {
+          setGameSession(event.data.session);
+        }
 
-      // Handle specific events
-      switch (event.event) {
-        case 'game_started':
-        case 'round_ended':
-        case 'game_ended':
-          if (event.data?.session) {
-            setGameSession(event.data.session);
-          }
-          break;
-        case 'correct_guess':
-          // Refresh session after correct guess
-          refreshGameSession();
-          break;
-      }
+        // Handle specific events
+        switch (event.event) {
+          case 'game_started':
+          case 'round_ended':
+          case 'game_ended':
+            if (event.data?.session) {
+              setGameSession(event.data.session);
+            }
+            break;
+          case 'correct_guess':
+            // Refresh session after correct guess
+            refreshGameSession();
+            break;
+        }
 
-      // Call custom event handler if provided
-      if (onGameEvent) {
-        onGameEvent(event);
-      }
-    },
-  };
+        // Call custom event handler if provided
+        if (onGameEvent) {
+          onGameEvent(event);
+        }
+      },
+    }),
+    [onGameEvent, refreshGameSession]
+  );
 
   /**
    * Initializes the game controller
@@ -136,32 +153,19 @@ export const useGameState = (options: UseGameStateOptions = {}): GameStateHook =
   }, [serviceFactory, animationService, gameEventHandler]);
 
   /**
-   * Refreshes the current game session
-   */
-  const refreshGameSession = useCallback(async (): Promise<void> => {
-    if (!gameControllerRef.current) {
-      return;
-    }
-
-    const currentSession = gameControllerRef.current.getCurrentSession();
-    if (currentSession) {
-      setGameSession(currentSession);
-    }
-  }, []);
-
-  /**
    * Initializes a new game
    * @param playerNames - Array of player names
    * @param config - Optional game configuration
    */
   const initializeGame = useCallback(
     async (playerNames: string[], config?: Partial<GameConfig>): Promise<void> => {
+      // Always ensure we have a controller, but don't recreate if it exists
       if (!gameControllerRef.current) {
         initializeController();
-      }
 
-      if (!gameControllerRef.current) {
-        throw new Error('Failed to initialize game controller');
+        if (!gameControllerRef.current) {
+          throw new Error('Failed to initialize game controller');
+        }
       }
 
       try {

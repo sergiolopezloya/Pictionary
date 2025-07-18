@@ -21,8 +21,12 @@ export { PlayerInfo } from './game/PlayerInfo';
 export { WordDisplay } from './game/WordDisplay';
 export { GuessInput } from './game/GuessInput';
 
+// Animation components
+// export { RiveGameAnimation } from './animations/RiveGameAnimation';
+
 // Component prop types
 export type { TimerProps } from './game/Timer';
 export type { PlayerInfoProps } from './game/PlayerInfo';
 export type { WordDisplayProps } from './game/WordDisplay';
 export type { GuessInputProps } from './game/GuessInput';
+// export type { RiveGameAnimationProps } from './animations/RiveGameAnimation';

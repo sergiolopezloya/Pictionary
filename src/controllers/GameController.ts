@@ -56,8 +56,21 @@ export class GameController {
       // Initialize game session
       this.currentSession = await this.gameService.initializeGame(gameConfig, players);
 
+      // Initialize animation service if not already initialized
+      try {
+        await this.animationService.initialize('/assets/animations/game-animations.riv');
+      } catch (error) {
+        console.warn('Failed to initialize animation service:', error);
+        // Continue without animations rather than failing the entire game
+      }
+
       // Initialize animations
-      await this.animationService.playAnimationForState(GameState.WAITING);
+      try {
+        await this.animationService.playAnimationForState(GameState.WAITING);
+      } catch (error) {
+        console.warn('Failed to play initial animation:', error);
+        // Continue without animations rather than failing the entire game
+      }
 
       // Emit game started event
       this.emitEvent(GameEvent.GAME_STARTED, { session: this.currentSession });
