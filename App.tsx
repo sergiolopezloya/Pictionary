@@ -1,20 +1,39 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+/**
+ * Main App component for Pictionary game
+ * Entry point for the React Native application
+ */
 
-export default function App() {
+import React from 'react';
+import { StatusBar } from 'expo-status-bar';
+import { StyleSheet, View, Platform } from 'react-native';
+import { PictionaryApp } from './src/PictionaryApp';
+
+/**
+ * Root App component
+ * @returns JSX element for the main application
+ */
+export default function App(): React.JSX.Element {
   return (
     <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
+      <StatusBar style='auto' />
+      <PictionaryApp />
     </View>
   );
 }
 
+/**
+ * Styles for the root App component
+ */
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: '#f5f5f5',
+    ...Platform.select({
+      web: {
+        maxWidth: 1200,
+        alignSelf: 'center',
+        width: '100%',
+      },
+    }),
   },
 });
