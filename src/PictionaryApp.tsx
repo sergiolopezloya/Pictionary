@@ -14,6 +14,7 @@ import {
   PlayerInfo,
   WordDisplay,
   GuessInput,
+  DrawingCanvas,
   // RiveGameAnimation,
 } from './components';
 import { Colors } from './components/common/BaseComponent';
@@ -202,18 +203,27 @@ export const PictionaryApp: React.FC = () => {
           highlightDrawer={true}
         />
 
+        {/* Drawing Canvas */}
+        <DrawingCanvas
+          enabled={gameState === GameState.DRAWING && isCurrentDrawer}
+          onDrawingChange={pathData => {
+            console.log('Drawing updated:', pathData);
+            // TODO: Send drawing data to other players
+          }}
+        />
+
         {/* Game Animation - Temporary Fallback */}
         {gameState && (
           <View style={styles.animationContainer}>
             <Text style={styles.animationText}>🎮 Game Animation</Text>
             <Text style={styles.animationSubtext}>
-              {gameState === 'playing'
+              {gameState === GameState.DRAWING
                 ? '🎨 Drawing...'
-                : gameState === 'guessing'
+                : gameState === GameState.CORRECT_GUESS
                 ? '🤔 Guessing...'
-                : gameState === 'roundEnd'
+                : gameState === GameState.TIME_UP
                 ? '🎉 Round Complete!'
-                : gameState === 'gameEnd'
+                : gameState === GameState.GAME_OVER
                 ? '🏆 Game Over!'
                 : '⏳ Waiting...'}
             </Text>

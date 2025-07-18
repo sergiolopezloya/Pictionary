@@ -20,6 +20,7 @@ export { Timer } from './game/Timer';
 export { PlayerInfo } from './game/PlayerInfo';
 export { WordDisplay } from './game/WordDisplay';
 export { GuessInput } from './game/GuessInput';
+export { DrawingCanvas } from './game/DrawingCanvas';
 
 // Animation components
 // export { RiveGameAnimation } from './RiveGameAnimation';
