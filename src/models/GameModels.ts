@@ -2,13 +2,7 @@
  * Game model implementations and utilities
  */
 
-import {
-  Player,
-  GameWord,
-  GameSession,
-  GameConfig,
-  Difficulty,
-} from '../types';
+import { Player, GameWord, GameSession, GameConfig, Difficulty } from '../types';
 
 /**
  * Factory class for creating game entities
@@ -52,7 +46,7 @@ export class GameModelFactory {
     }
 
     return {
-      id: `word_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: `word_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
       word: word.toLowerCase().trim(),
       difficulty,
       category: category.trim(),
@@ -65,9 +59,7 @@ export class GameModelFactory {
    * @param overrides - Optional configuration overrides
    * @returns New game configuration
    */
-  public static createDefaultGameConfig(
-    overrides?: Partial<GameConfig>
-  ): GameConfig {
+  public static createDefaultGameConfig(overrides?: Partial<GameConfig>): GameConfig {
     const defaultConfig: GameConfig = {
       maxTime: 60, // 60 seconds per round
       maxRounds: 5, // 5 rounds per game
@@ -88,9 +80,7 @@ export class GameModelFactory {
       throw new Error('At least 2 player names are required');
     }
 
-    return names.map((name, index) =>
-      this.createPlayer(`player_${index + 1}`, name)
-    );
+    return names.map((name, index) => this.createPlayer(`player_${index + 1}`, name));
   }
 }
 
@@ -240,26 +230,36 @@ export class GameUtils {
    * @param players - Array of players
    * @param currentDrawer - Current drawer (null for first round)
    * @returns Next drawer
+   * @throws Error if no players are available
    */
-  public static getNextDrawer(
-    players: Player[],
-    currentDrawer: Player | null
-  ): Player {
+  public static getNextDrawer(players: Player[], currentDrawer: Player | null): Player {
     if (players.length === 0) {
       throw new Error('No players available');
     }
 
     if (!currentDrawer) {
-      return players[0];
+      const firstPlayer = players[0];
+      if (!firstPlayer) {
+        throw new Error('No players available');
+      }
+      return firstPlayer;
     }
 
-    const currentIndex = players.findIndex((p) => p.id === currentDrawer.id);
+    const currentIndex = players.findIndex(p => p.id === currentDrawer.id);
     if (currentIndex === -1) {
-      return players[0];
+      const firstPlayer = players[0];
+      if (!firstPlayer) {
+        throw new Error('No players available');
+      }
+      return firstPlayer;
     }
 
     const nextIndex = (currentIndex + 1) % players.length;
-    return players[nextIndex];
+    const nextPlayer = players[nextIndex];
+    if (!nextPlayer) {
+      throw new Error('Next player not found');
+    }
+    return nextPlayer;
   }
 
   /**
@@ -281,8 +281,8 @@ export class GameUtils {
       return [];
     }
 
-    const maxScore = Math.max(...players.map((p) => p.score));
-    return players.filter((p) => p.score === maxScore);
+    const maxScore = Math.max(...players.map(p => p.score));
+    return players.filter(p => p.score === maxScore);
   }
 
   /**
@@ -301,6 +301,6 @@ export class GameUtils {
    * @returns Unique session identifier
    */
   public static generateSessionId(): string {
-    return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `session_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
   }
 }
