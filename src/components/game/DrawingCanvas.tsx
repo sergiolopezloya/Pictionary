@@ -9,12 +9,9 @@ interface DrawingCanvasProps {
 }
 
 const { width: screenWidth } = Dimensions.get('window');
-const CANVAS_HEIGHT = 300;
+const CANVAS_HEIGHT = 200;
 
-export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
-  enabled,
-  onDrawingChange
-}) => {
+export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ enabled, onDrawingChange }) => {
   const [paths, setPaths] = useState<string[]>([]);
   const [currentPath, setCurrentPath] = useState<string>('');
   const pathRef = useRef<string>('');
@@ -23,18 +20,18 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     onStartShouldSetPanResponder: () => enabled,
     onMoveShouldSetPanResponder: () => enabled,
 
-    onPanResponderGrant: (event) => {
+    onPanResponderGrant: event => {
       if (!enabled) return;
-      
+
       const { locationX, locationY } = event.nativeEvent;
       const newPath = `M${locationX},${locationY}`;
       pathRef.current = newPath;
       setCurrentPath(newPath);
     },
 
-    onPanResponderMove: (event) => {
+    onPanResponderMove: event => {
       if (!enabled) return;
-      
+
       const { locationX, locationY } = event.nativeEvent;
       const updatedPath = `${pathRef.current} L${locationX},${locationY}`;
       pathRef.current = updatedPath;
@@ -43,13 +40,16 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
 
     onPanResponderRelease: () => {
       if (!enabled || !pathRef.current) return;
-      
-      setPaths(prev => [...prev, pathRef.current]);
+
+      const newPath = pathRef.current;
+      setPaths(prev => {
+        const updatedPaths = [...prev, newPath];
+        // Notify parent of drawing change with updated paths
+        onDrawingChange?.(updatedPaths.join(' '));
+        return updatedPaths;
+      });
       setCurrentPath('');
       pathRef.current = '';
-      
-      // Notify parent of drawing change
-      onDrawingChange?.(paths.join(' '));
     },
   });
 
@@ -68,9 +68,7 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
   if (!enabled) {
     return (
       <View style={styles.disabledContainer}>
-        <Text style={styles.disabledText}>
-          🎨 Waiting for your turn to draw...
-        </Text>
+        <Text style={styles.disabledText}>🎨 Waiting for your turn to draw...</Text>
       </View>
     );
   }
@@ -78,35 +76,31 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
   return (
     <View style={styles.container}>
       <Text style={styles.title}>🎨 Draw Here!</Text>
-      
+
       <View style={styles.canvasContainer} {...panResponder.panHandlers}>
-        <Svg
-          width={screenWidth - 40}
-          height={CANVAS_HEIGHT}
-          style={styles.canvas}
-        >
+        <Svg width={screenWidth * 0.45} height={CANVAS_HEIGHT} style={styles.canvas}>
           {/* Render completed paths */}
           {paths.map((path, index) => (
             <Path
               key={index}
               d={path}
-              stroke="#000"
-              strokeWidth="3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              fill="none"
+              stroke='#000'
+              strokeWidth='3'
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              fill='none'
             />
           ))}
-          
+
           {/* Render current path being drawn */}
           {currentPath && (
             <Path
               d={currentPath}
-              stroke="#000"
-              strokeWidth="3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              fill="none"
+              stroke='#000'
+              strokeWidth='3'
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              fill='none'
             />
           )}
         </Svg>
@@ -114,17 +108,17 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
 
       <View style={styles.controls}>
         <Button
-          title="Undo"
+          title='Undo'
           onPress={undoLastStroke}
-          variant="outline"
-          size="small"
+          variant='outline'
+          size='small'
           disabled={paths.length === 0}
         />
         <Button
-          title="Clear"
+          title='Clear'
           onPress={clearCanvas}
-          variant="outline"
-          size="small"
+          variant='outline'
+          size='small'
           disabled={paths.length === 0 && !currentPath}
         />
       </View>

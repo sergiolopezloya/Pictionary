@@ -15,7 +15,7 @@ import {
   WordDisplay,
   GuessInput,
   DrawingCanvas,
-  // RiveGameAnimation,
+  RiveGameAnimation,
 } from './components';
 import { Colors } from './components/common/BaseComponent';
 
@@ -52,6 +52,7 @@ export const PictionaryApp: React.FC = () => {
   // Local state
   const [isGameStarted, setIsGameStarted] = useState(false);
   const [currentPlayerId] = useState('player_1');
+  const [localTimeRemaining, setLocalTimeRemaining] = useState(60);
 
   /**
    * Handles starting a new game
@@ -100,6 +101,35 @@ export const PictionaryApp: React.FC = () => {
     resetGame();
     setIsGameStarted(false);
   };
+
+  // Timer countdown effect
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+
+    if (gameState === GameState.DRAWING && localTimeRemaining > 0) {
+      timer = setInterval(() => {
+        setLocalTimeRemaining(prev => {
+          if (prev <= 1) {
+            // Time's up!
+            console.log('Time is up!');
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [gameState, localTimeRemaining]);
+
+  // Reset timer when game state changes
+  useEffect(() => {
+    if (gameState === GameState.DRAWING) {
+      setLocalTimeRemaining(gameSession?.maxTime || 60);
+    }
+  }, [gameState, gameSession?.maxTime]);
 
   // Animation state tracking (placeholder)
   useEffect(() => {
@@ -166,71 +196,68 @@ export const PictionaryApp: React.FC = () => {
         alwaysBounceVertical={false}
         keyboardShouldPersistTaps='handled'
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.gameTitle}>Pictionary Game</Text>
-          <Text style={styles.roundInfo}>
-            Round {gameSession.round} of {gameSession.maxRounds}
-          </Text>
-        </View>
-
-        {/* Timer */}
-        {gameState === GameState.DRAWING && (
-          <Timer
-            timeRemaining={gameSession.timeRemaining}
-            maxTime={gameSession.maxTime}
-            isActive={true}
-            showProgressBar={true}
-            animated={true}
-          />
-        )}
-
-        {/* Word Display */}
-        <WordDisplay
-          word={gameSession.currentWord}
-          isDrawer={isCurrentDrawer}
-          showHints={!isCurrentDrawer}
-          hintsEnabled={true}
-        />
-
-        {/* Player Info */}
-        <PlayerInfo
-          players={gameSession.players}
-          {...(gameSession.currentDrawer?.id && {
-            currentDrawerId: gameSession.currentDrawer.id,
-          })}
-          showScores={true}
-          highlightDrawer={true}
-        />
-
-        {/* Drawing Canvas */}
-        <DrawingCanvas
-          enabled={gameState === GameState.DRAWING && isCurrentDrawer}
-          onDrawingChange={pathData => {
-            console.log('Drawing updated:', pathData);
-            // TODO: Send drawing data to other players
-          }}
-        />
-
-        {/* Game Animation - Temporary Fallback */}
-        {gameState && (
-          <View style={styles.animationContainer}>
-            <Text style={styles.animationText}>🎮 Game Animation</Text>
-            <Text style={styles.animationSubtext}>
-              {gameState === GameState.DRAWING
-                ? '🎨 Drawing...'
-                : gameState === GameState.CORRECT_GUESS
-                ? '🤔 Guessing...'
-                : gameState === GameState.TIME_UP
-                ? '🎉 Round Complete!'
-                : gameState === GameState.GAME_OVER
-                ? '🏆 Game Over!'
-                : '⏳ Waiting...'}
+        {/* Compact Header with Timer */}
+        <View style={styles.compactHeader}>
+          <View style={styles.headerInfo}>
+            <Text style={styles.gameTitle}>🎨 Pictionary</Text>
+            <Text style={styles.roundInfo}>
+              Round {gameSession.round}/{gameSession.maxRounds}
             </Text>
           </View>
-        )}
+          {gameState === GameState.DRAWING && (
+            <View style={styles.timerContainer}>
+              <Timer
+                timeRemaining={localTimeRemaining}
+                maxTime={gameSession.maxTime}
+                isActive={true}
+                showProgressBar={true}
+                animated={true}
+              />
+            </View>
+          )}
+        </View>
 
-        {/* Guess Input */}
+        {/* Main Game Area */}
+        <View style={styles.gameArea}>
+          {/* Left Column: Word + Players */}
+          <View style={styles.leftColumn}>
+            <WordDisplay
+              word={gameSession.currentWord}
+              isDrawer={isCurrentDrawer}
+              showHints={!isCurrentDrawer}
+              hintsEnabled={true}
+            />
+            <PlayerInfo
+              players={gameSession.players}
+              {...(gameSession.currentDrawer?.id && {
+                currentDrawerId: gameSession.currentDrawer.id,
+              })}
+              showScores={true}
+              highlightDrawer={true}
+            />
+          </View>
+
+          {/* Right Column: Canvas + Animation */}
+          <View style={styles.rightColumn}>
+            <DrawingCanvas
+              enabled={gameState === GameState.DRAWING && isCurrentDrawer}
+              onDrawingChange={pathData => {
+                console.log('Drawing updated:', pathData);
+                // TODO: Send drawing data to other players
+              }}
+            />
+
+            {/* Rive Animation */}
+            <View style={styles.animationContainer}>
+              <RiveGameAnimation
+                gameState={gameState}
+                currentWord={gameSession?.currentWord?.word}
+              />
+            </View>
+          </View>
+        </View>
+
+        {/* Bottom: Guess Input */}
         <GuessInput
           enabled={gameState === GameState.DRAWING && !isCurrentDrawer}
           isDrawer={isCurrentDrawer}
@@ -390,6 +417,47 @@ const styles = StyleSheet.create({
 
   errorButton: {
     minWidth: 150,
+  },
+
+  // Compact Layout Styles
+  compactHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: Colors.background,
+    borderRadius: 12,
+    marginBottom: 16,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+
+  headerInfo: {
+    flex: 1,
+  },
+
+  timerContainer: {
+    flex: 1,
+    maxWidth: 200,
+  },
+
+  gameArea: {
+    flexDirection: 'row',
+    gap: 16,
+    marginBottom: 16,
+  },
+
+  leftColumn: {
+    flex: 1,
+    gap: 12,
+  },
+
+  rightColumn: {
+    flex: 1,
   },
 
   // Animation styles

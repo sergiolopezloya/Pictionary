@@ -1,7 +1,25 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, Dimensions, Text } from 'react-native';
-import Rive, { RiveRef } from 'rive-react-native';
+import { View, StyleSheet, Dimensions, Text, Platform, Animated, Easing } from 'react-native';
 import { GameState } from '../types/GameTypes';
+
+// Conditional Rive import with fallback
+let Rive: any = null;
+let RiveRef: any = null;
+let isRiveAvailable = false;
+
+try {
+  const RiveModule = require('rive-react-native');
+  Rive = RiveModule.default || RiveModule.Rive;
+  RiveRef = RiveModule.RiveRef;
+
+  // Always use fallback in Expo Go - native components aren't available
+  // We'll detect this at runtime when the component tries to render
+  isRiveAvailable = true; // Allow JS module to load
+  console.log('✅ Rive JS module loaded - Will test native component availability');
+} catch (error) {
+  console.log('⚠️ Rive not available, using enhanced fallback animations');
+  isRiveAvailable = false;
+}
 
 export interface RiveGameAnimationProps {
   gameState: GameState;
@@ -10,57 +28,199 @@ export interface RiveGameAnimationProps {
 
 const { width: screenWidth } = Dimensions.get('window');
 
+// Error boundary component for Rive
+const RiveErrorBoundary: React.FC<{ children: React.ReactNode; onError: () => void }> = ({
+  children,
+  onError,
+}) => {
+  useEffect(() => {
+    const originalError = console.error;
+    console.error = (...args) => {
+      const message = args.join(' ');
+      if (message.includes('RiveReactNativeView') || message.includes('View config not found')) {
+        onError();
+        return;
+      }
+      originalError(...args);
+    };
+
+    return () => {
+      console.error = originalError;
+    };
+  }, [onError]);
+
+  return <>{children}</>;
+};
+
 export const RiveGameAnimation: React.FC<RiveGameAnimationProps> = ({ gameState, currentWord }) => {
-  const riveRef = useRef<RiveRef>(null);
+  // State for error handling
   const [hasError, setHasError] = useState(false);
+  const [useNativeFallback, setUseNativeFallback] = useState(false);
 
-  useEffect(() => {
-    if (!riveRef.current) return;
+  // Rive reference
+  const riveRef = useRef<any>(null);
 
-    try {
-      // Cambiar animación basada en el estado del juego
-      switch (gameState) {
-        case 'waiting':
-          riveRef.current.play('idle');
-          break;
-        case 'playing':
-          riveRef.current.play('drawing');
-          break;
-        case 'guessing':
-          riveRef.current.play('thinking');
-          break;
-        case 'roundEnd':
-          riveRef.current.play('celebration');
-          break;
-        case 'gameEnd':
-          riveRef.current.play('victory');
-          break;
-        default:
-          riveRef.current.play('idle');
-      }
-    } catch (error) {
-      console.warn('Error controlling Rive animation:', error);
+  // Advanced animation values
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const rotateAnim = useRef(new Animated.Value(0)).current;
+  const bounceAnim = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const slideAnim = useRef(new Animated.Value(0)).current;
+  const opacityAnim = useRef(new Animated.Value(1)).current;
+
+  // Particle animation values
+  const particle1 = useRef(new Animated.Value(0)).current;
+  const particle2 = useRef(new Animated.Value(0)).current;
+  const particle3 = useRef(new Animated.Value(0)).current;
+
+  // Advanced animation controller
+  const startAnimation = (type: string) => {
+    // Stop all current animations
+    scaleAnim.stopAnimation();
+    rotateAnim.stopAnimation();
+    bounceAnim.stopAnimation();
+    pulseAnim.stopAnimation();
+    slideAnim.stopAnimation();
+    opacityAnim.stopAnimation();
+    particle1.stopAnimation();
+    particle2.stopAnimation();
+    particle3.stopAnimation();
+
+    switch (type) {
+      case 'waiting':
+        startWaitingAnimation();
+        break;
+      case 'drawing':
+        startDrawingAnimation();
+        break;
+      case 'guessing':
+        startGuessingAnimation();
+        break;
+      case 'celebration':
+        startCelebrationAnimation();
+        break;
+      case 'victory':
+        startVictoryAnimation();
+        break;
+      default:
+        startIdleAnimation();
     }
-  }, [gameState]);
+  };
 
-  // Efecto para cambios de palabra (opcional)
+  const startWaitingAnimation = () => {
+    // Gentle breathing effect
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(scaleAnim, {
+          toValue: 1.1,
+          duration: 2000,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnim, {
+          toValue: 1,
+          duration: 2000,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    // Subtle pulse
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacityAnim, {
+          toValue: 0.7,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 1,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  };
+
+  // Fallback animation effect
   useEffect(() => {
-    if (currentWord && riveRef.current && gameState === 'playing') {
-      try {
-        // Trigger una animación especial cuando cambia la palabra
-        riveRef.current.play('newWord');
-      } catch (error) {
-        console.warn('Error triggering word change animation:', error);
-      }
-    }
-  }, [currentWord, gameState]);
+    if (hasError) {
+      // Create a simple bounce animation
+      const bounceAnimation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(scaleAnim, {
+            toValue: 1.2,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+          Animated.timing(scaleAnim, {
+            toValue: 1,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+        ])
+      );
 
-  // Fallback content when animation fails to load
-  if (hasError) {
+      // Create a rotation animation for drawing state
+      const rotateAnimation = Animated.loop(
+        Animated.timing(rotateAnim, {
+          toValue: 1,
+          duration: 2000,
+          useNativeDriver: true,
+        })
+      );
+
+      if (gameState === 'playing') {
+        rotateAnimation.start();
+      } else {
+        bounceAnimation.start();
+      }
+
+      return () => {
+        bounceAnimation.stop();
+        rotateAnimation.stop();
+      };
+    }
+  }, [gameState, hasError, scaleAnim, rotateAnim]);
+
+  // Effect to detect native component availability
+  useEffect(() => {
+    if (isRiveAvailable && Rive) {
+      // Test if native component is actually available
+      const timer = setTimeout(() => {
+        // If we get here without the component mounting, use fallback
+        if (!riveRef.current) {
+          console.log('🔄 Native Rive component not available, using fallback');
+          setUseNativeFallback(true);
+        }
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  // Enhanced fallback content
+  const renderFallback = () => {
+    const spin = rotateAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: ['0deg', '360deg'],
+    });
+
     return (
       <View style={styles.container}>
         <View style={styles.fallbackContainer}>
-          <Text style={styles.fallbackEmoji}>
+          <Animated.Text
+            style={[
+              styles.fallbackEmoji,
+              {
+                transform: [
+                  { scale: gameState === 'playing' ? 1 : scaleAnim },
+                  { rotate: gameState === 'playing' ? spin : '0deg' },
+                ],
+              },
+            ]}
+          >
             {gameState === 'playing'
               ? '🎨'
               : gameState === 'guessing'
@@ -70,7 +230,7 @@ export const RiveGameAnimation: React.FC<RiveGameAnimationProps> = ({ gameState,
               : gameState === 'gameEnd'
               ? '🏆'
               : '⏳'}
-          </Text>
+          </Animated.Text>
           <Text style={styles.fallbackText}>
             {gameState === 'playing'
               ? 'Drawing...'
@@ -82,41 +242,17 @@ export const RiveGameAnimation: React.FC<RiveGameAnimationProps> = ({ gameState,
               ? 'Game Over!'
               : 'Waiting...'}
           </Text>
+          {hasError && (
+            <Text style={styles.fallbackSubtext}>(Animation error - using fallback)</Text>
+          )}
         </View>
       </View>
     );
-  }
+  };
 
-  return (
-    <View style={styles.container}>
-      <Rive
-        ref={riveRef}
-        resourceName='game_animation'
-        style={styles.animation}
-        autoplay={true}
-        onPlay={animationName => {
-          console.log(`Playing animation: ${animationName}`);
-          setHasError(false);
-        }}
-        onPause={animationName => {
-          console.log(`Paused animation: ${animationName}`);
-        }}
-        onStop={animationName => {
-          console.log(`Stopped animation: ${animationName}`);
-        }}
-        onLoopEnd={animationName => {
-          console.log(`Loop ended for animation: ${animationName}`);
-        }}
-        onStateChanged={stateMachineName => {
-          console.log(`State machine changed: ${stateMachineName}`);
-        }}
-        onError={error => {
-          console.warn('Rive animation error:', error);
-          setHasError(true);
-        }}
-      />
-    </View>
-  );
+  // Always use fallback for now - Rive native components not available in Expo Go
+  console.log('🎨 Using enhanced fallback animations for optimal Expo Go experience');
+  return renderFallback();
 };
 
 const styles = StyleSheet.create({
@@ -146,6 +282,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#666',
     textAlign: 'center',
+  },
+  fallbackSubtext: {
+    fontSize: 12,
+    color: '#999',
+    textAlign: 'center',
+    marginTop: 4,
+    fontStyle: 'italic',
   },
 });
 

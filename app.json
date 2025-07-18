@@ -21,8 +21,19 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.patnotti.Pictionary"
+      "package": "com.sergiol.Pictionary"
     },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 21
+          }
+        }
+      ],
+      "./plugins/rive-plugin.js"
+    ],
     "web": {
       "favicon": "./assets/favicon.png"
     }
