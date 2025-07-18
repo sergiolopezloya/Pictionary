@@ -8,7 +8,14 @@ import { View, Text, StyleSheet, ScrollView, Alert, Platform } from 'react-nativ
 import { SafeAreaView } from 'react-native';
 
 // Import components
-import { Button, Timer, PlayerInfo, WordDisplay, GuessInput } from './components';
+import {
+  Button,
+  Timer,
+  PlayerInfo,
+  WordDisplay,
+  GuessInput,
+  // RiveGameAnimation,
+} from './components';
 import { Colors } from './components/common/BaseComponent';
 
 // Import hooks
@@ -195,16 +202,18 @@ export const PictionaryApp: React.FC = () => {
           highlightDrawer={true}
         />
 
-        {/* Game Animation Placeholder */}
+        {/* Game Animation - Temporary Fallback */}
         {gameState && (
           <View style={styles.animationContainer}>
             <Text style={styles.animationText}>🎮 Game Animation</Text>
             <Text style={styles.animationSubtext}>
-              {gameState === GameState.DRAWING
+              {gameState === 'playing'
                 ? '🎨 Drawing...'
-                : gameState === GameState.GUESSING
+                : gameState === 'guessing'
                 ? '🤔 Guessing...'
-                : gameState === GameState.GAME_OVER
+                : gameState === 'roundEnd'
+                ? '🎉 Round Complete!'
+                : gameState === 'gameEnd'
                 ? '🏆 Game Over!'
                 : '⏳ Waiting...'}
             </Text>

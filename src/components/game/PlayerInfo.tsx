@@ -3,7 +3,7 @@
  */
 
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, ViewStyle, TextStyle } from 'react-native';
+import { View, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import { Player } from '../../types';
 import { BaseComponentProps, Colors } from '../common/BaseComponent';
 
@@ -155,14 +155,14 @@ export const PlayerInfo: React.FC<PlayerInfoProps> = ({
     <View style={containerStyles} testID={testID}>
       <Text style={styles.title}>{showScores ? 'Leaderboard' : 'Players'}</Text>
 
-      <FlatList
-        data={sortedPlayers}
-        renderItem={renderPlayerItem}
-        keyExtractor={getPlayerKey}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.listContainer}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-      />
+      <View style={styles.listContainer}>
+        {sortedPlayers.map((player, index) => (
+          <View key={getPlayerKey(player)}>
+            {renderPlayerItem({ item: player })}
+            {index < sortedPlayers.length - 1 && <View style={styles.separator} />}
+          </View>
+        ))}
+      </View>
 
       {showScores && (
         <View style={styles.footer}>
