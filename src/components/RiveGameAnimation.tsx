@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, ErrorInfo } from 'react';
 import { View, StyleSheet, Dimensions, Text, Animated, Easing } from 'react-native';
 import { GameState } from '../types';
 
@@ -8,14 +8,15 @@ let isRiveAvailable = false;
 
 try {
   const RiveModule = require('rive-react-native');
-  Rive = RiveModule.default || RiveModule.Rive;
+  Rive = RiveModule.default || RiveModule.Rive || RiveModule;
 
-  // Always use fallback in Expo Go - native components aren't available
-  // We'll detect this at runtime when the component tries to render
-  isRiveAvailable = true; // Allow JS module to load
-  console.log('✅ Rive JS module loaded - Will test native component availability');
+  // Check if we're in a development build or Expo Go
+  // In development builds, Rive native components should be available
+  // In Expo Go, they won't be available and we'll fall back
+  isRiveAvailable = true;
+  console.log('✅ Rive JS module loaded - Testing native component availability...');
 } catch (error) {
-  console.log('⚠️ Rive not available, using enhanced fallback animations');
+  console.log('⚠️ Rive module not found, using enhanced fallback animations');
   isRiveAvailable = false;
 }
 
@@ -26,10 +27,47 @@ export interface RiveGameAnimationProps {
 
 const { width: screenWidth } = Dimensions.get('window');
 
+// Error Boundary Component for Rive
+class RiveErrorBoundary extends React.Component<
+  { children: React.ReactNode; onError: () => void },
+  { hasError: boolean }
+> {
+  constructor(props: { children: React.ReactNode; onError: () => void }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error): { hasError: boolean } {
+    console.log('🚨 RiveErrorBoundary caught error:', error.message);
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.log('🚨 Rive component error details:', error, errorInfo);
+    // Check for specific Rive errors
+    if (
+      error.message.includes('RiveReactNativeView') ||
+      error.message.includes('View config not found') ||
+      error.message.includes('Invariant Violation')
+    ) {
+      console.log('🔄 Detected Rive native component unavailable, switching to fallback');
+      this.props.onError();
+    }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return null; // Let parent handle fallback
+    }
+    return this.props.children;
+  }
+}
+
 export const RiveGameAnimation: React.FC<RiveGameAnimationProps> = ({ gameState, currentWord }) => {
   // State for error handling
   const [hasError, setHasError] = useState(false);
   const [useNativeFallback, setUseNativeFallback] = useState(false);
+  const [riveRenderAttempted, setRiveRenderAttempted] = useState(false);
 
   // Rive reference
   const riveRef = useRef<any>(null);
@@ -181,28 +219,69 @@ export const RiveGameAnimation: React.FC<RiveGameAnimationProps> = ({ gameState,
     ).start();
   };
 
+  // Control Rive animations based on game state
+  const controlRiveAnimation = (state: GameState) => {
+    if (riveRef.current && !hasError && !useNativeFallback) {
+      try {
+        // Control Rive animation states
+        switch (state) {
+          case GameState.WAITING:
+            riveRef.current.play('waiting');
+            break;
+          case GameState.DRAWING:
+            riveRef.current.play('drawing');
+            break;
+          case GameState.GUESSING:
+            riveRef.current.play('guessing');
+            break;
+          case GameState.TIME_UP:
+            riveRef.current.play('celebration');
+            break;
+          case GameState.GAME_OVER:
+            riveRef.current.play('victory');
+            break;
+          default:
+            riveRef.current.play('idle');
+            break;
+        }
+        console.log(`🎮 Rive animation changed to: ${state}`);
+      } catch (error) {
+        console.log('❌ Error controlling Rive animation:', error);
+        setHasError(true);
+        setUseNativeFallback(true);
+      }
+    }
+  };
+
   // Start animations when gameState changes
   useEffect(() => {
-    switch (gameState) {
-      case GameState.WAITING:
-        startAnimation('waiting');
-        break;
-      case GameState.DRAWING:
-        startAnimation('drawing');
-        break;
-      case GameState.GUESSING:
-        startAnimation('guessing');
-        break;
-      case GameState.TIME_UP:
-        startAnimation('celebration');
-        break;
-      case GameState.GAME_OVER:
-        startAnimation('victory');
-        break;
-      default:
-        startAnimation('idle');
+    // Try to control Rive first, fallback to React Native animations
+    if (isRiveAvailable && !hasError && !useNativeFallback) {
+      controlRiveAnimation(gameState);
+    } else {
+      // Use React Native animations as fallback
+      switch (gameState) {
+        case GameState.WAITING:
+          startAnimation('waiting');
+          break;
+        case GameState.DRAWING:
+          startAnimation('drawing');
+          break;
+        case GameState.GUESSING:
+          startAnimation('guessing');
+          break;
+        case GameState.TIME_UP:
+          startAnimation('celebration');
+          break;
+        case GameState.GAME_OVER:
+          startAnimation('victory');
+          break;
+        default:
+          startAnimation('idle');
+          break;
+      }
     }
-  }, [gameState]);
+  }, [gameState, hasError, useNativeFallback]);
 
   // Cleanup animations on unmount
   useEffect(() => {
@@ -359,8 +438,41 @@ export const RiveGameAnimation: React.FC<RiveGameAnimationProps> = ({ gameState,
     );
   };
 
-  // Always use fallback for now - Rive native components not available in Expo Go
-  console.log('🎨 Using enhanced fallback animations for optimal Expo Go experience');
+  // Handle Rive errors and switch to fallback
+  const handleRiveError = () => {
+    console.log('🔄 Switching to fallback due to Rive error');
+    setHasError(true);
+    setUseNativeFallback(true);
+    setRiveRenderAttempted(true);
+  };
+
+  // Render Rive component if available and no errors, otherwise use fallback
+  if (isRiveAvailable && Rive && !hasError && !useNativeFallback && !riveRenderAttempted) {
+    console.log('🎨 Attempting to render Rive native component');
+
+    return (
+      <RiveErrorBoundary onError={handleRiveError}>
+        <View style={styles.container}>
+          <Rive
+            ref={riveRef}
+            resourceName='game_animation'
+            style={styles.animation}
+            autoplay={true}
+            onError={(error: any) => {
+              console.log('❌ Rive component onError:', error);
+              handleRiveError();
+            }}
+            onLoad={() => {
+              console.log('✅ Rive component loaded successfully');
+            }}
+          />
+        </View>
+      </RiveErrorBoundary>
+    );
+  }
+
+  // Use fallback for Expo Go or when Rive is not available
+  console.log('🎨 Using enhanced fallback animations for optimal compatibility');
   return renderFallback();
 };
 

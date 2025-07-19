@@ -6,7 +6,7 @@
     "orientation": "landscape",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -23,17 +23,7 @@
       "edgeToEdgeEnabled": true,
       "package": "com.sergiol.Pictionary"
     },
-    "plugins": [
-      [
-        "expo-build-properties",
-        {
-          "android": {
-            "minSdkVersion": 21
-          }
-        }
-      ],
-      "./plugins/rive-plugin.js"
-    ],
+    "plugins": [],
     "web": {
       "favicon": "./assets/favicon.png"
     }
