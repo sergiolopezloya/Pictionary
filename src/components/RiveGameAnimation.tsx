@@ -1,16 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, Dimensions, Text, Platform, Animated, Easing } from 'react-native';
-import { GameState } from '../types/GameTypes';
+import { View, StyleSheet, Dimensions, Text, Animated, Easing } from 'react-native';
+import { GameState } from '../types';
 
 // Conditional Rive import with fallback
 let Rive: any = null;
-let RiveRef: any = null;
 let isRiveAvailable = false;
 
 try {
   const RiveModule = require('rive-react-native');
   Rive = RiveModule.default || RiveModule.Rive;
-  RiveRef = RiveModule.RiveRef;
 
   // Always use fallback in Expo Go - native components aren't available
   // We'll detect this at runtime when the component tries to render
@@ -28,30 +26,6 @@ export interface RiveGameAnimationProps {
 
 const { width: screenWidth } = Dimensions.get('window');
 
-// Error boundary component for Rive
-const RiveErrorBoundary: React.FC<{ children: React.ReactNode; onError: () => void }> = ({
-  children,
-  onError,
-}) => {
-  useEffect(() => {
-    const originalError = console.error;
-    console.error = (...args) => {
-      const message = args.join(' ');
-      if (message.includes('RiveReactNativeView') || message.includes('View config not found')) {
-        onError();
-        return;
-      }
-      originalError(...args);
-    };
-
-    return () => {
-      console.error = originalError;
-    };
-  }, [onError]);
-
-  return <>{children}</>;
-};
-
 export const RiveGameAnimation: React.FC<RiveGameAnimationProps> = ({ gameState, currentWord }) => {
   // State for error handling
   const [hasError, setHasError] = useState(false);
@@ -60,31 +34,22 @@ export const RiveGameAnimation: React.FC<RiveGameAnimationProps> = ({ gameState,
   // Rive reference
   const riveRef = useRef<any>(null);
 
-  // Advanced animation values
+  // Animation values
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
-  const bounceAnim = useRef(new Animated.Value(0)).current;
-  const pulseAnim = useRef(new Animated.Value(1)).current;
-  const slideAnim = useRef(new Animated.Value(0)).current;
   const opacityAnim = useRef(new Animated.Value(1)).current;
 
-  // Particle animation values
-  const particle1 = useRef(new Animated.Value(0)).current;
-  const particle2 = useRef(new Animated.Value(0)).current;
-  const particle3 = useRef(new Animated.Value(0)).current;
-
-  // Advanced animation controller
+  // Animation controller
   const startAnimation = (type: string) => {
     // Stop all current animations
     scaleAnim.stopAnimation();
     rotateAnim.stopAnimation();
-    bounceAnim.stopAnimation();
-    pulseAnim.stopAnimation();
-    slideAnim.stopAnimation();
     opacityAnim.stopAnimation();
-    particle1.stopAnimation();
-    particle2.stopAnimation();
-    particle3.stopAnimation();
+
+    // Reset animation values
+    scaleAnim.setValue(1);
+    rotateAnim.setValue(0);
+    opacityAnim.setValue(1);
 
     switch (type) {
       case 'waiting':
@@ -143,6 +108,111 @@ export const RiveGameAnimation: React.FC<RiveGameAnimationProps> = ({ gameState,
     ).start();
   };
 
+  const startDrawingAnimation = () => {
+    Animated.loop(
+      Animated.timing(rotateAnim, {
+        toValue: 1,
+        duration: 2000,
+        useNativeDriver: true,
+      })
+    ).start();
+  };
+
+  const startGuessingAnimation = () => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(scaleAnim, {
+          toValue: 1.15,
+          duration: 800,
+          easing: Easing.bounce,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnim, {
+          toValue: 1,
+          duration: 800,
+          easing: Easing.bounce,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  };
+
+  const startCelebrationAnimation = () => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(scaleAnim, {
+          toValue: 1.3,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnim, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  };
+
+  const startVictoryAnimation = () => {
+    Animated.loop(
+      Animated.timing(rotateAnim, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      })
+    ).start();
+  };
+
+  const startIdleAnimation = () => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacityAnim, {
+          toValue: 0.8,
+          duration: 1200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 1,
+          duration: 1200,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  };
+
+  // Start animations when gameState changes
+  useEffect(() => {
+    switch (gameState) {
+      case GameState.WAITING:
+        startAnimation('waiting');
+        break;
+      case GameState.DRAWING:
+        startAnimation('drawing');
+        break;
+      case GameState.GUESSING:
+        startAnimation('guessing');
+        break;
+      case GameState.TIME_UP:
+        startAnimation('celebration');
+        break;
+      case GameState.GAME_OVER:
+        startAnimation('victory');
+        break;
+      default:
+        startAnimation('idle');
+    }
+  }, [gameState]);
+
+  // Cleanup animations on unmount
+  useEffect(() => {
+    return () => {
+      scaleAnim.stopAnimation();
+      rotateAnim.stopAnimation();
+      opacityAnim.stopAnimation();
+    };
+  }, []);
+
   // Fallback animation effect
   useEffect(() => {
     if (hasError) {
@@ -171,7 +241,7 @@ export const RiveGameAnimation: React.FC<RiveGameAnimationProps> = ({ gameState,
         })
       );
 
-      if (gameState === 'playing') {
+      if (gameState === GameState.DRAWING) {
         rotateAnimation.start();
       } else {
         bounceAnimation.start();
@@ -182,6 +252,8 @@ export const RiveGameAnimation: React.FC<RiveGameAnimationProps> = ({ gameState,
         rotateAnimation.stop();
       };
     }
+
+    return () => {};
   }, [gameState, hasError, scaleAnim, rotateAnim]);
 
   // Effect to detect native component availability
@@ -198,6 +270,8 @@ export const RiveGameAnimation: React.FC<RiveGameAnimationProps> = ({ gameState,
 
       return () => clearTimeout(timer);
     }
+
+    return () => {};
   }, []);
 
   // Enhanced fallback content with better animations
@@ -209,7 +283,7 @@ export const RiveGameAnimation: React.FC<RiveGameAnimationProps> = ({ gameState,
 
     const getAnimationContent = () => {
       switch (gameState) {
-        case 'playing':
+        case GameState.DRAWING:
           return {
             emoji: '🎨',
             title: 'Drawing Time!',
@@ -217,7 +291,7 @@ export const RiveGameAnimation: React.FC<RiveGameAnimationProps> = ({ gameState,
             color: '#FF6B6B',
             bgColor: '#FFE5E5',
           };
-        case 'guessing':
+        case GameState.GUESSING:
           return {
             emoji: '🤔',
             title: 'Think Fast!',
@@ -225,29 +299,37 @@ export const RiveGameAnimation: React.FC<RiveGameAnimationProps> = ({ gameState,
             color: '#4ECDC4',
             bgColor: '#E5F9F7',
           };
-        case 'roundEnd':
+        case GameState.TIME_UP:
           return {
-            emoji: '🎉',
-            title: 'Round Complete!',
-            subtitle: 'Great job everyone!',
-            color: '#45B7D1',
-            bgColor: '#E5F4FD',
+            emoji: '⏰',
+            title: 'Time Up!',
+            subtitle: 'Round ended',
+            color: '#E67E22',
+            bgColor: '#FDF2E9',
           };
-        case 'gameEnd':
+        case GameState.GAME_OVER:
           return {
             emoji: '🏆',
             title: 'Game Over!',
             subtitle: 'Thanks for playing!',
-            color: '#F7DC6F',
-            bgColor: '#FEF9E7',
+            color: '#9B59B6',
+            bgColor: '#F3E5F5',
           };
-        default:
+        case GameState.WAITING:
           return {
             emoji: '⏳',
             title: 'Get Ready...',
             subtitle: 'Game starting soon',
             color: '#BB8FCE',
             bgColor: '#F4F1F8',
+          };
+        default:
+          return {
+            emoji: '🎮',
+            title: 'Pictionary',
+            subtitle: 'Let the fun begin!',
+            color: '#34495E',
+            bgColor: '#ECF0F1',
           };
       }
     };
@@ -262,8 +344,8 @@ export const RiveGameAnimation: React.FC<RiveGameAnimationProps> = ({ gameState,
               styles.enhancedEmoji,
               {
                 transform: [
-                  { scale: gameState === 'playing' ? 1 : scaleAnim },
-                  { rotate: gameState === 'playing' ? spin : '0deg' },
+                  { scale: gameState === GameState.DRAWING ? 1 : scaleAnim },
+                  { rotate: gameState === GameState.DRAWING ? spin : '0deg' },
                 ],
               },
             ]}

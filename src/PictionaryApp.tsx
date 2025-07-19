@@ -216,7 +216,7 @@ export const PictionaryApp: React.FC = () => {
             />
             <View style={styles.compactAnimationContainer}>
               <RiveGameAnimation
-                gameState={gameState}
+                gameState={gameState || GameState.WAITING}
                 currentWord={gameSession?.currentWord?.word}
               />
             </View>
