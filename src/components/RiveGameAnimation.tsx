@@ -1,18 +1,21 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, Dimensions, Text, Animated, Easing, Platform } from 'react-native';
+import { View, StyleSheet, Dimensions, Text, Animated, Easing } from 'react-native';
 import { GameState } from '../types';
 
-// Rive import
+// Conditional Rive import with fallback
 let Rive: any = null;
 let isRiveAvailable = false;
 
 try {
-  // Import Rive
-  Rive = require('rive-react-native').default;
-  isRiveAvailable = true;
-  console.log('✅ Rive module loaded successfully');
+  const RiveModule = require('rive-react-native');
+  Rive = RiveModule.default || RiveModule.Rive;
+
+  // Always use fallback in Expo Go - native components aren't available
+  // We'll detect this at runtime when the component tries to render
+  isRiveAvailable = true; // Allow JS module to load
+  console.log('✅ Rive JS module loaded - Will test native component availability');
 } catch (error) {
-  console.log('⚠️ Rive not available, using fallback animations:', error);
+  console.log('⚠️ Rive not available, using enhanced fallback animations');
   isRiveAvailable = false;
 }
 
@@ -23,14 +26,15 @@ export interface RiveGameAnimationProps {
 
 const { width: screenWidth } = Dimensions.get('window');
 
-export const RiveGameAnimation: React.FC<RiveGameAnimationProps> = ({ gameState }) => {
+export const RiveGameAnimation: React.FC<RiveGameAnimationProps> = ({ gameState, currentWord }) => {
+  // State for error handling
+  const [hasError, setHasError] = useState(false);
+  const [useNativeFallback, setUseNativeFallback] = useState(false);
+
   // Rive reference
   const riveRef = useRef<any>(null);
 
-  // State for fallback
-  const [useRive, setUseRive] = useState(isRiveAvailable);
-
-  // Fallback animation values (only used if Rive fails)
+  // Animation values
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const opacityAnim = useRef(new Animated.Value(1)).current;
@@ -209,61 +213,66 @@ export const RiveGameAnimation: React.FC<RiveGameAnimationProps> = ({ gameState 
     };
   }, []);
 
-  // Control Rive animations based on game state
+  // Fallback animation effect
   useEffect(() => {
-    if (riveRef.current && isRiveAvailable) {
-      try {
-        // Play different animations based on game state
-        switch (gameState) {
-          case GameState.WAITING:
-            riveRef.current.play('waiting');
-            break;
-          case GameState.DRAWING:
-            riveRef.current.play('drawing');
-            break;
-          case GameState.GUESSING:
-            riveRef.current.play('guessing');
-            break;
-          case GameState.TIME_UP:
-            riveRef.current.play('timeup');
-            break;
-          case GameState.GAME_OVER:
-            riveRef.current.play('victory');
-            break;
-          default:
-            riveRef.current.play('idle');
-        }
-      } catch (error) {
-        console.log('Error controlling Rive animation:', error);
-        setUseRive(false);
+    if (hasError) {
+      // Create a simple bounce animation
+      const bounceAnimation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(scaleAnim, {
+            toValue: 1.2,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+          Animated.timing(scaleAnim, {
+            toValue: 1,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+
+      // Create a rotation animation for drawing state
+      const rotateAnimation = Animated.loop(
+        Animated.timing(rotateAnim, {
+          toValue: 1,
+          duration: 2000,
+          useNativeDriver: true,
+        })
+      );
+
+      if (gameState === GameState.DRAWING) {
+        rotateAnimation.start();
+      } else {
+        bounceAnimation.start();
       }
-    }
-  }, [gameState]);
 
-  // Handle Rive errors
-  const handleRiveError = (error: any) => {
-    console.log('Rive error, falling back to React Native animations:', error);
-    setUseRive(false);
-  };
-
-  // Render Rive animation
-  const renderRiveAnimation = () => {
-    if (!isRiveAvailable || !Rive) {
-      return renderFallback();
+      return () => {
+        bounceAnimation.stop();
+        rotateAnimation.stop();
+      };
     }
 
-    return (
-      <View style={styles.riveContainer}>
-        <Rive
-          ref={riveRef}
-          url='https://cdn.rive.app/animations/vehicles.riv'
-          autoplay={true}
-          style={styles.riveAnimation}
-          onError={handleRiveError}
-        />
-      </View>
-    );
-  };
+    return () => {};
+  }, [gameState, hasError, scaleAnim, rotateAnim]);
+
+  // Effect to detect native component availability
+  useEffect(() => {
+    if (isRiveAvailable && Rive) {
+      // Test if native component is actually available
+      const timer = setTimeout(() => {
+        // If we get here without the component mounting, use fallback
+        if (!riveRef.current) {
+          console.log('🔄 Native Rive component not available, using fallback');
+          setUseNativeFallback(true);
+        }
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
+
+    return () => {};
+  }, []);
 
   // Enhanced fallback content with better animations
   const renderFallback = () => {
@@ -350,14 +359,9 @@ export const RiveGameAnimation: React.FC<RiveGameAnimationProps> = ({ gameState 
     );
   };
 
-  // Use Rive if available, otherwise fallback
-  if (useRive && isRiveAvailable) {
-    console.log('🎨 Using Rive animations');
-    return renderRiveAnimation();
-  } else {
-    console.log('🎨 Using enhanced fallback animations');
-    return renderFallback();
-  }
+  // Always use fallback for now - Rive native components not available in Expo Go
+  console.log('🎨 Using enhanced fallback animations for optimal Expo Go experience');
+  return renderFallback();
 };
 
 const styles = StyleSheet.create({
@@ -367,17 +371,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'transparent',
-  },
-  riveContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '100%',
-    height: '100%',
-  },
-  riveAnimation: {
-    width: '100%',
-    height: '100%',
   },
   animation: {
     width: '100%',
