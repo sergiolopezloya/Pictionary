@@ -10,7 +10,7 @@ A modern, interactive Pictionary game built with React Native, TypeScript, and R
 - **⏱️ Real-time Timer**: Visual countdown with progress indicators
 - **🏆 Score Tracking**: Player leaderboards and scoring system
 - **💡 Smart Hints**: Progressive hint system for better gameplay
-- **📱 Cross-platform**: Works on iOS, Android, and Web (Expo Go compatible)
+- **📱 Android Support**: Optimized for Android devices and Expo Go
 - **🧪 Comprehensive Testing**: Full test suite with React Native Testing Library
 - **🏗️ SOLID Architecture**: Clean, maintainable code following SOLID principles
 
@@ -59,7 +59,7 @@ A modern, interactive Pictionary game built with React Native, TypeScript, and R
 1. **Clone the repository**
 
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/sergiolopezloya/Pictionary.git
    cd Pictionary
    ```
 
@@ -81,12 +81,6 @@ A modern, interactive Pictionary game built with React Native, TypeScript, and R
    # Start development server (scan QR with Expo Go)
    npm start
 
-   # Web (opens on http://localhost:8000)
-   npm run web
-
-   # iOS Simulator
-   npm run ios
-
    # Android Emulator
    npm run android
    ```
@@ -95,9 +89,8 @@ A modern, interactive Pictionary game built with React Native, TypeScript, and R
 
 For the quickest development experience:
 
-1. **Install Expo Go** on your mobile device:
+1. **Install Expo Go** on your Android device:
 
-   - [iOS App Store](https://apps.apple.com/app/expo-go/id982107779)
    - [Google Play Store](https://play.google.com/store/apps/details?id=host.exp.exponent)
 
 2. **Start the development server**:
@@ -121,10 +114,8 @@ To experience native Rive animations, create a development build:
 # Install EAS CLI
 npm install -g @expo/eas-cli
 
-# Create development build
+# Create development build for Android
 eas build --profile development --platform android
-# or
-eas build --profile development --platform ios
 ```
 
 ## 🏗️ Architecture
@@ -356,48 +347,14 @@ useEffect(() => {
 }, [gameState]);
 ```
 
-## 🧪 Testing
-
-Comprehensive test suite covering:
-
-- **Unit Tests**: Services, utilities, and business logic
-- **Component Tests**: React components with React Native Testing Library
-- **Integration Tests**: Game flow and state management
-- **Animation Tests**: Rive integration and state synchronization
-
-### Running Tests
-
-```bash
-# Run all tests
-npm test
-
-# Run tests in watch mode
-npm run test:watch
-
-# Generate coverage report
-npm run test:coverage
-```
-
-### Test Coverage
-
-- **Services**: 70%+ coverage for all business logic
-- **Components**: Full component rendering and interaction tests
-- **Hooks**: Custom hook behavior and state management
-- **Integration**: End-to-end game flow testing
-
 ## 📱 Platform Support
 
-### Web
-
-- Responsive design for desktop and mobile browsers
-- Optimized for touch and mouse interactions
-- Full feature parity with mobile apps
-
-### Mobile (iOS/Android)
+### Android
 
 - Native performance with React Native
 - Touch-optimized interface
-- Platform-specific optimizations
+- Expo Go compatibility with intelligent fallback
+- Development build support for full Rive integration
 
 ## 🔧 Configuration
 
@@ -457,47 +414,33 @@ export const Colors = {
 };
 ```
 
-## 🚀 Deployment
-
-### Web Deployment
-
-```bash
-# Build for production
-npm run build:web
-
-# Deploy to hosting service
-npm run deploy
-```
-
-### Mobile App Store
-
-```bash
-# Build for iOS
-expo build:ios
-
-# Build for Android
-expo build:android
-```
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Follow the established architecture patterns
-4. Add comprehensive tests
-5. Update documentation
-6. Submit a pull request
-
-### Code Style
-
-- TypeScript strict mode
-- ESLint + Prettier configuration
-- JSDoc documentation for all public methods
-- SOLID principles adherence
-
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License.
+
+```
+MIT License
+
+Copyright (c) 2025 Sergio López Loya
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
 
 ## 🙏 Acknowledgments
 
@@ -555,15 +498,8 @@ Warning: Invariant Violation: View config not found for component `RiveReactNati
 | **Development Build** | ✅ Native     | Excellent   | ⭐⭐ Moderate    |
 | **Production**        | ✅ Native     | Excellent   | ⭐⭐⭐ Advanced  |
 
-## 📞 Support
-
-For questions or issues:
-
-1. Check the troubleshooting section above
-2. Review existing issues in the repository
-3. Create a new issue with detailed information
-4. Join our community discussions
-
 ---
 
 **Built with ❤️ using React Native, TypeScript, and Rive**
+
+_This is a technical demonstration project showcasing Rive integration with React Native and intelligent fallback mechanisms._

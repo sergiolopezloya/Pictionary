@@ -1,16 +1,29 @@
 {
   "name": "pictionary",
   "version": "1.0.0",
+  "description": "A modern Pictionary game built with React Native, TypeScript, and Rive animations with intelligent fallback support",
   "main": "index.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sergiolopezloya/Pictionary.git"
+  },
+  "author": "Sergio López Loya",
+  "license": "MIT",
   "scripts": {
     "start": "expo start --port 8000",
     "android": "expo start --android --port 8000",
-    "ios": "expo start --ios --port 8000"
+    "prebuild": "expo prebuild --clean",
+    "build": "eas build -p android --profile production"
   },
   "dependencies": {
     "@rive-app/react-canvas": "^4.22.1",
     "expo": "~53.0.20",
+    "expo-build-properties": "^0.14.8",
+    "expo-dev-client": "~5.2.4",
+    "expo-modules-core": "^2.3.0",
     "expo-status-bar": "~2.2.3",
+    "expo-system-ui": "^5.0.10",
+    "expo-web-browser": "^14.2.0",
     "react": "19.0.0",
     "react-native": "0.79.5",
     "react-native-gesture-handler": "~2.24.0",
@@ -19,6 +32,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
+    "@react-native-community/cli": "^19.1.0",
     "@types/react": "~19.0.10",
     "typescript": "~5.8.3"
   },
