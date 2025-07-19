@@ -22,7 +22,6 @@ try {
 
 export interface RiveGameAnimationProps {
   gameState: GameState;
-  currentWord?: string | undefined;
 }
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -63,7 +62,7 @@ class RiveErrorBoundary extends React.Component<
   }
 }
 
-export const RiveGameAnimation: React.FC<RiveGameAnimationProps> = ({ gameState, currentWord }) => {
+export const RiveGameAnimation: React.FC<RiveGameAnimationProps> = ({ gameState }) => {
   // State for error handling
   const [hasError, setHasError] = useState(false);
   const [useNativeFallback, setUseNativeFallback] = useState(false);

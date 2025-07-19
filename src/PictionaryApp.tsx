@@ -215,10 +215,7 @@ export const PictionaryApp: React.FC = () => {
               hintsEnabled={true}
             />
             <View style={styles.compactAnimationContainer}>
-              <RiveGameAnimation
-                gameState={gameState || GameState.WAITING}
-                currentWord={gameSession?.currentWord?.word}
-              />
+              <RiveGameAnimation gameState={gameState || GameState.WAITING} />
             </View>
           </View>
 
