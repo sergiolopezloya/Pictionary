@@ -8,6 +8,7 @@
     "ios": "expo start --ios --port 8000"
   },
   "dependencies": {
+    "@rive-app/react-canvas": "^4.22.1",
     "expo": "~53.0.20",
     "expo-status-bar": "~2.2.3",
     "react": "19.0.0",
