@@ -46,13 +46,10 @@ export const PictionaryApp: React.FC = () => {
     currentPlayerId: 'player_1', // For demo purposes, using fixed player ID
   });
 
-  // Animation management (placeholder)
-  const animationState = { isReady: true };
-
   // Local state
   const [isGameStarted, setIsGameStarted] = useState(false);
-  const [currentPlayerId] = useState('player_1');
   const [localTimeRemaining, setLocalTimeRemaining] = useState(60);
+  const currentPlayerId = 'player_1';
 
   /**
    * Handles starting a new game
@@ -71,7 +68,6 @@ export const PictionaryApp: React.FC = () => {
       setIsGameStarted(true);
     } catch (err) {
       Alert.alert('Error', 'Failed to start game. Please try again.');
-      console.error('Failed to start game:', err);
     }
   };
 
@@ -131,12 +127,12 @@ export const PictionaryApp: React.FC = () => {
     }
   }, [gameState, gameSession?.maxTime]);
 
-  // Animation state tracking (placeholder)
+  // Animation state tracking
   useEffect(() => {
-    if (gameState && animationState.isReady) {
+    if (gameState) {
       console.log('Game state changed:', gameState);
     }
-  }, [gameState, animationState.isReady]);
+  }, [gameState]);
 
   // Show error if there's one
   if (error) {
@@ -225,10 +221,7 @@ export const PictionaryApp: React.FC = () => {
             <Text style={styles.canvasTitle}>🎨 Draw Here!</Text>
             <DrawingCanvas
               enabled={gameState === GameState.DRAWING && isCurrentDrawer}
-              onDrawingChange={pathData => {
-                console.log('Drawing updated:', pathData);
-                // TODO: Send drawing data to other players
-              }}
+              onDrawingChange={() => {}}
             />
           </View>
 
@@ -286,16 +279,6 @@ export const PictionaryApp: React.FC = () => {
             style={styles.controlButton}
           />
         </View>
-
-        {/* Game State Debug Info (for development) */}
-        {__DEV__ && (
-          <View style={styles.debugContainer}>
-            <Text style={styles.debugText}>Debug: State = {gameState || 'None'}</Text>
-            <Text style={styles.debugText}>
-              Animation Ready: {animationState.isReady ? 'Yes' : 'No'}
-            </Text>
-          </View>
-        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -500,42 +483,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     marginBottom: 4,
-  },
-
-  // Animation styles
-  animationContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: 16,
-    backgroundColor: Colors.background,
-    borderRadius: 12,
-    padding: 16,
-  },
-
-  animationText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.text.primary,
-    marginBottom: 8,
-  },
-
-  animationSubtext: {
-    fontSize: 14,
-    color: Colors.text.secondary,
-    textAlign: 'center',
-  },
-
-  // Debug styles
-  debugContainer: {
-    marginTop: 24,
-    padding: 16,
-    backgroundColor: Colors.border.light,
-    borderRadius: 8,
-  },
-
-  debugText: {
-    fontSize: 12,
-    color: Colors.text.tertiary,
-    fontFamily: 'monospace',
   },
 });
