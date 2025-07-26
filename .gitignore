@@ -38,3 +38,5 @@ android
 
 # typescript
 *.tsbuildinfo
+/.jest-cache
+/coverage

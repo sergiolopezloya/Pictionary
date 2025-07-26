@@ -13,7 +13,11 @@
     "start": "expo start --port 8000",
     "android": "expo start --android --port 8000",
     "prebuild": "expo prebuild --clean",
-    "build": "eas build -p android --profile production"
+    "build": "eas build -p android --profile production",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:ci": "jest --ci --coverage --watchAll=false"
   },
   "dependencies": {
     "@rive-app/react-canvas": "^4.22.1",
@@ -33,7 +37,12 @@
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@react-native-community/cli": "^19.1.0",
+    "@testing-library/jest-native": "^5.4.3",
+    "@testing-library/react-native": "^13.2.0",
     "@types/react": "~19.0.10",
+    "jest": "^30.0.4",
+    "jest-environment-jsdom": "^30.0.4",
+    "react-test-renderer": "^19.0.0",
     "typescript": "~5.8.3"
   },
   "private": true
